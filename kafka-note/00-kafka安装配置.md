@@ -1,14 +1,14 @@
-<<<<<<< HEAD:00-kafka安装配置.md
 # kafka安装配置
 
 ## 安装JDK
 
 ```shell
-wget http://10.10.34.22/software/jdk-8u202-linux-x64.tar.gz
 tar -xvf jdk-8u202-linux-x64.tar.gz -C /usr/local/
 ln -sv /usr/local/jdk1.8.0_202 /usr/local/jdk
+```
 
 # 添加到环境变量PATH
+```shell
 cat <<'EOF' > /etc/profile.d/jdk.sh
 export JAVA_HOME=/usr/local/jdk
 export JRE_HOME=$JAVA_HOME/jre
@@ -23,11 +23,11 @@ java -version
 ## 安装kafka
 
 ```shell
-
 # 添加到环境变量PATH
 cat <<'EOF' >/etc/profile.d/kafka.sh 
 export PATH=$PATH:/data/kafka/bin:/data/zookeeper/bin
 EOF
+
 source /etc/profile 
 ```
 
