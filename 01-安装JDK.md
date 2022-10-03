@@ -2,6 +2,8 @@
 
 ### 1、下载jdk安装包
 
+http://java.sun.com/javase/downloads/index.jsp
+
 https://www.oracle.com/java/technologies/downloads/archive/
 
 <img src="./images/jdk-1.png" style="zoom:80%;" />
