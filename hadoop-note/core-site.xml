@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed ...
+-->
+ 
+<configuration> 
+  <property> 
+    <name>hadoop.tmp.dir</name>  
+    <!-- Hadoop的默认临时文件存放路径 -->  
+    <value>file:/data/hadoop/tmp</value>  
+    <description>Abase for other temporary directories.</description> 
+  </property>  
+  <property> 
+    <name>fs.defaultFS</name>  
+    <value>hdfs://cluster</value> 
+  </property>  
+  <property> 
+    <name>io.file.buffer.size</name>  
+    <value>131072</value> 
+  </property>  
+  <property> 
+    <name>hadoop.proxyuser.hadoop.hosts</name>  
+    <value>*</value> 
+  </property>  
+  <property> 
+    <name>hadoop.proxyuser.hadoop.groups</name>  
+    <value>*</value> 
+  </property>  
+  <property> 
+    <name>ha.zookeeper.quorum</name>  
+    <value>hdfs-0:2181,hdfs-1:2181,hdfs-2:2181</value> 
+  </property>  
+  <property> 
+    <name>ha.zookeeper.session-timeout.ms</name>  
+    <value>30000</value> 
+  </property>  
+  <property> 
+    <name>topology.script.file.name</name>  
+    <value>/usr/local/services/hadoop-2.6.5/etc/hadoop/hdfs_rack_info.py</value>
+  </property>
+  <property>
+    <name>ipc.client.connect.max.retries</name>
+    <value>10</value>
+    <description>Indicates the number of retries a client will make to establish a server connection.</description>
+  </property>
+  <property>
+    <name>ipc.client.connect.retry.interval</name>
+    <value>5000</value>
+    <description>Indicates the number of milliseconds a client will wait for before retrying to establish a server connection.</description>
+  </property>
+  <property>
+    <name>ipc.client.connect.max.retries.on.timeouts</name>
+    <value>3</value>
+  </property>
+</configuration>
+

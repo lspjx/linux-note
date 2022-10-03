@@ -1,0 +1,213 @@
+## 如何设置 MongoDB 副本集配置？
+
+在 MongoDB 中设置复制包含相当简单的步骤并且易于学习。确保将 MongoDB 安装在要复制数据的所有节点上。对于 MongoDB 安装，您可以参考[MongoDB 官方文档](https://docs.mongodb.com/manual/administration/install-community/)中的指南。您现在可以按照分步过程在 MongoDB 中设置复制：
+
+- [MongoDB 副本集配置步骤 1：设置主机](https://hevodata.com/learn/mongodb-replica-set-config/#t6)
+- [MongoDB 副本集配置步骤 2：设置主机名](https://hevodata.com/learn/mongodb-replica-set-config/#t7)
+- [MongoDB副本集配置第三步：生成密钥](https://hevodata.com/learn/mongodb-replica-set-config/#t8)
+- [MongoDB副本集配置步骤四：配置副本集](https://hevodata.com/learn/mongodb-replica-set-config/#t9)
+- [MongoDB 副本集配置步骤 5：启动复制](https://hevodata.com/learn/mongodb-replica-set-config/#t10)
+- [MongoDB 副本集配置步骤 6：将实例添加到复制](https://hevodata.com/learn/mongodb-replica-set-config/#t11)
+- [MongoDB 副本集配置步骤 7：检查状态](https://hevodata.com/learn/mongodb-replica-set-config/#t12)
+
+### MongoDB 副本集配置步骤 1：设置主机
+
+对于此示例，以下节点用于复制数据： 
+
+```
+10.10.0.29 mongo-db1 
+10.10.0.30 mongo-db2
+10.10.0.31 mongo-db3
+```
+
+将上述 IP 地址添加到每个节点的 /etc/hosts 文件中。请确保所有三个 IP 都需要在每个节点的 /etc/hosts 文件中。
+
+### MongoDB 副本集配置步骤 2：设置主机名
+
+在每个节点上，重命名要通过名称识别的主机名，而不仅仅是 IP 地址。
+
+```
+$ sudo vim /etc/hostname     ## On Node1 
+mongo-db1 
+$ sudo vim /etc/hostname     ## On Node2
+mongo-db2
+$ sudo vim /etc/hostname     ## On Node3
+mongo-db3
+```
+
+### MongoDB副本集配置第三步：生成密钥
+
+密钥将有助于在不需要外部密码的情况下与节点通信。
+
+要生成密钥，请执行以下命令：
+
+```
+On Node 1(mongo-db1)
+# mkdir -p /etc/mongodb/keys/
+# openssl rand -base64 756 > /etc/mongodb/keys/mongo-key
+# chmod 400 /etc/mongodb/keys/mongo-key
+# chown -R mongodb:mongodb /etc/mongodb
+```
+
+现在，您可以将生成的密钥文件复制到同一位置的所有其他节点，即**/etc/mongodb/keys 。**
+
+### MongoDB副本集配置步骤四：配置副本集
+
+现在您已经在节点上完成了所有配置，最后一步是添加节点的 IP 地址并提供复制集名称。可以在**/etc/mongo.conf**中找到 MongoDB 配置文件。
+
+```
+On node 1 => mongo-db1
+# network interfaces
+net:
+  port: 27017
+  bindIp: 10.10.0.29
+#security:
+security:
+ authorization: enabled
+ keyFile:  /etc/mongodb/keys/mongo-key
+#replication:
+replication:
+  replSetName: "replicaset-01"
+```
+
+在其他两个节点上执行相同的操作。
+
+更改完成后，您可以通过运行以下命令重新启动 MongoDB 服务： 
+
+```
+sudo systemctl restart mongod
+```
+
+### MongoDB 副本集配置步骤 5：启动复制
+
+登录主节点**10.10.0.29 。**
+
+```
+$ mongo
+> rs.initiate()
+```
+
+### MongoDB副本集配置步骤6：添加实例到副本集
+
+启动复制 REPL 后，就可以通过以下命令将节点添加到复制集中：
+
+```
+rs.add(“mongo-db2:27017”)
+rs.add(“mongo-db3:27017”)
+```
+
+添加节点后，您将看到输出为 {'ok':1}，这表明在副本集中成功添加了节点。
+
+### MongoDB副本集配置步骤7：检查状态
+
+复制集的状态可以通过以下命令查看：
+
+```
+rs.status()
+```
+
+上述命令将产生以下输出：
+
+```
+{ 
+"set" : "myitsocial", 
+"date" : ISODate("2022-02-10T06:15:02Z"), 
+"myState" : 1, 
+"members" : [ 
+   { 
+      "_id" : 0, 
+      "name" : "10.10.0.29:27017", 
+      "health" : 1, 
+      "state" : 1, 
+      "stateStr" : "PRIMARY", 
+      "uptime" : 303165, 
+      "optime" : Timestamp(1644516902, 1), 
+      "optimeDate" : ISODate("2022-02-10T06:15:02Z"), 
+      "self" : true 
+   }, 
+   { 
+      "_id" : 1, 
+      "name" : "10.10.0.30:27017", 
+      "health" : 1, 
+      "state" : 2, 
+      "stateStr" : "SECONDARY", 
+      "uptime" : 302985, 
+      "optime" : Timestamp(1644516902, 1), 
+      "optimeDate" : ISODate("2022-02-10T06:15:02Z"), 
+      "lastHeartbeat" : ISODate("2022-02-10T06:15:02Z"), 
+      "lastHeartbeatRecv" : ISODate("2014-08-12T06:15:02Z"), 
+      "pingMs" : 0, 
+   "syncingTo" : "10.20.30.40:27017" 
+   },
+   { 
+      "_id" : 2, 
+      "name" : "10.10.0.31:27017", 
+      "health" : 1, "state" : 2, 
+      "stateStr" : "SECONDARY", 
+      "uptime" : 302985, 
+      "optime" : Timestamp(1644516902, 1), 
+      "optimeDate" : ISODate("2022-02-10T06:15:02Z"), 
+      "lastHeartbeat" : ISODate("2022-02-10T06:15:02Z"), 
+      "lastHeartbeatRecv" : ISODate("2022-02-10T06:15:02Z"), 
+      "pingMs" : 0, 
+      "syncingTo" : "10.10.0.29:27017" 
+   } 
+], 
+"ok" : 1 
+} 
+```
+
+## 结论
+
+## MongoDB 副本集用于测试和开发
+
+通过 MongoDB 中的复制，您可以在测试和开发环境中部署副本集。您可以设置副本集以启用或禁用访问控制进行测试。在这种方法中，您将设置一个禁用访问控制的副本集，以便在测试环境中部署它。如果你想设置启用访问控制，你可以在 这里查看官方文档。
+
+这可以使用以下步骤来实现：
+
+```shell
+第 1 步：为 MongoDB 实例创建数据目录
+mkdir -p /srv/mongodb/rs0-0  /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
+
+第 2 步：在 MongoDB 中启动复制
+mongod --replSet rs0 --port 27017 --bind_ip localhost,<hostname(s)|ip address(es)> --dbpath /srv/mongodb/rs0-0  --oplogSize 128
+mongod --replSet rs0 --port 27018 --bind_ip localhost,<hostname(s)|ip address(es)> --dbpath /srv/mongodb/rs0-0  --oplogSize 128
+mongod --replSet rs0 --port 27019 --bind_ip localhost,<hostname(s)|ip address(es)> --dbpath /srv/mongodb/rs0-0  --oplogSize 128
+
+
+   
+
+–oplogSize 参数用于防止机器在测试阶段过载。它有助于减少每个磁盘消耗的磁盘空间量。
+
+使用 Mongo Shell 连接到作为 ReplicaSet 一部分的各种 MongoDB 实例之一。您可以使用以下命令使用端口号进行连接：
+
+mongo --host 10.10.34.28 --port 27017
+使用rs.initiate()命令启动复制过程并通过将主机名参数替换为您的系统名称来创建配置对象，如下所示：
+
+rs conf = {
+  _id: "rs0",
+  members: [
+    {  _id: 0,  host: "<hostname>:27017},
+    {  _id: 1,  host: "<hostname>:27018"},
+    {  _id: 2,  host: "<hostname>:27019"}
+   ] }
+将配置对象文件作为参数传递给initial命令，并按如下方式使用：
+
+rs.initiate(rsconf)
+这就是您可以创建用于测试和开发目的的 MongoDB 副本集的方式。
+
+有关在 MongoDB 中创建 Replica Sets 的更多信息，您可以在此处查看官方文档。
+
+
+
+mongod --bind_ip 10.10.34.28 --port 27117 --dbpath /srv/mongodb/rs0-0 --replSet rs0 --oplogSize 128 & 
+mongod --bind_ip 10.10.34.28 --port 27118 --dbpath /srv/mongodb/rs0-1 --replSet rs0 --oplogSize 128 & 
+mongod --bind_ip 10.10.34.28 --port 27119 --dbpath /srv/mongodb/rs0-2 --replSet rs0 --oplogSize 128 &
+rs.initiate()
+rs.add('10.10.34.28:27118')
+rs.add('10.10.34.28:27119')
+rs.status()
+
+
+```
+

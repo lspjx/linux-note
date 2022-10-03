@@ -1,0 +1,10 @@
+
+
+[root@kafka-2 kafka]# kafka-topics.sh --create --zookeeper localhost:2181 --topic connect-configs --replication-factor 3 --partitions 1
+Created topic connect-configs.
+[root@kafka-2 kafka]# kafka-topics.sh --create --zookeeper localhost:2181 --topic connect-offsets --replication-factor 3 --partitions 50
+Created topic connect-offsets.
+[root@kafka-2 kafka]# kafka-topics.sh --create --zookeeper localhost:2181 --topic connect-status --replication-factor 3 --partitions 10
+Created topic connect-status.
+[root@kafka-2 kafka]# ./bin/connect-distributed.sh   ./config/connect-distributed.properties
+
