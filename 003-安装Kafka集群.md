@@ -11,14 +11,11 @@ https://www.oracle.com/java/technologies/downloads/archive/
 账号：li1121567428@live.com
 
 ### 2、解压安装
-
 ```shell
 tar -xvf jdk-8u202-linux-x64.tar.gz -C /usr/local/
 ln -sv /usr/local/jdk1.8.0_202 /usr/local/jdk
 ```
-
 ### 3、添加到环境变量PATH
-
 ```shell
 cat <<'EOF' > /etc/profile.d/jdk.sh
 export JAVA_HOME=/usr/local/jdk
@@ -30,7 +27,6 @@ source /etc/profile
 
 java -version
 ```
-
 
 ## 二、安装Zookeeper集群
 
@@ -56,7 +52,6 @@ server.1=node01:2888:3888
 server.2=node02:2888:3888
 server.3=node03:2888:3888
 ```
-
 ### 3、同步配置文件到其他服务器
 ```shell
 rsync -arPv /opt/* node02:/opt/
@@ -69,7 +64,6 @@ mkdir /data/zookeeper ; echo 2 > /data/zookeeper/myid
 # node03
 mkdir /data/zookeeper ; echo 3 > /data/zookeeper/myid
 ```
-
 ### 4、开启防火墙
 ```shell
 firewall-cmd --permanent --add-port=2181/tcp 
@@ -77,13 +71,11 @@ firewall-cmd --permanent --add-port=2888/tcp
 firewall-cmd --permanent --add-port=3888/tcp 
 firewall-cmd --reload
 ```
-
 ### 5、启动ZK服务
 ```shell
 /opt/zookeeper/bin/zkServer.sh start 
 /opt/zookeeper/bin/zkServer.sh status
 ```
-
 重启zk服务
 ```shell
 /opt/zookeeper/bin/zkServer.sh stop
@@ -92,7 +84,6 @@ firewall-cmd --reload
 ```
 
 #### 5.1、[systemd]配置管理ZK服务
-
 ```shell
 cat << EOF > /usr/lib/systemd/system/zookeeper.service
 [Unit]
@@ -119,14 +110,8 @@ RestartSec=10
 StartLimitInterval=0
 [Install]
 WantedBy=multi-user.target
-
 EOF
 ```
-
-```shell
-
-```
-
 #### 5.1、[supervison]管理Zookeeper服务
 安装supervisor
 ```shell
@@ -165,7 +150,6 @@ environment=JAVA_HOME=/opt/jdk
 #exitcodes=0
 EOF
 ```
-
 启动服务
 ```shell
 supervisorctl update zookeeper 
@@ -258,7 +242,6 @@ EOF
 ```
 
 #### [supervison]管理kafka服务
-
 ```shell
 # cat <<EOF > /etc/supervisord.d/kafka.ini 
 [program:kafka]
