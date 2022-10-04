@@ -1,4 +1,4 @@
-## 安装JDK
+## 一、安装JDK
 
 ### 1、下载jdk安装包
 
@@ -32,7 +32,7 @@ java -version
 ```
 
 
-## 安装Zookeeper集群
+## 二、安装Zookeeper集群
 
 ### 1、下载zk安装包
 https://github.com/apache/zookeeper
@@ -185,7 +185,7 @@ version=0
 [zk: 127.0.0.1:2181(CONNECTED) 1] 
 ```
 
-## 安装kafka集群
+## 三、安装kafka集群
 ### 1、下载kafka安装包
 https://github.com/apache/kafka
 https://kafka.apache.org/downloads
