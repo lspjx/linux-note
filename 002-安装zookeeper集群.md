@@ -1,18 +1,27 @@
-## Zookeeper 安装
+## 安装JDK
 
-### 1、下载zk安装包
-https://github.com/apache/zookeeper
-https://zookeeper.apache.org/
-https://zookeeper.apache.org/releases.html
+### 1、下载jdk安装包
 
-## 2、安装jdk
-参考：001-安装JDK
+http://java.sun.com/javase/downloads/index.jsp
+
+https://www.oracle.com/java/technologies/downloads/archive/
+
+<img src="./images/jdk-1.png" style="zoom:80%;" />
+
+账号：li1121567428@live.com
+
+### 2、解压安装
+
 ```shell
-tar -xf jdk-8u333-linux-x64.tar.gz -C /opt
-ln -sv /opt/jdk1.8.0_333 /opt/jdk
+tar -xvf jdk-8u202-linux-x64.tar.gz -C /usr/local/
+ln -sv /usr/local/jdk1.8.0_202 /usr/local/jdk
+```
 
+### 3、添加到环境变量PATH
+
+```shell
 cat <<'EOF' > /etc/profile.d/jdk.sh
-export JAVA_HOME=/opt/jdk
+export JAVA_HOME=/usr/local/jdk
 export JRE_HOME=$JAVA_HOME/jre
 export PATH=$PATH:$JAVA_HOME/bin
 export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
@@ -22,7 +31,15 @@ source /etc/profile
 java -version
 ```
 
-## 3、安装zookeeper
+
+## 安装Zookeeper集群
+
+### 1、下载zk安装包
+https://github.com/apache/zookeeper
+https://zookeeper.apache.org/
+https://zookeeper.apache.org/releases.html
+
+### 2、解压配置zookeeper
 ```shell
 tar -xf apache-zookeeper-3.6.3-bin.tar.gz -C /opt/
 ln -sv /opt/apache-zookeeper-3.6.3-bin /opt/zookeeper
@@ -38,6 +55,12 @@ clientPort=2181
 server.1=node01:2888:3888
 server.2=node02:2888:3888
 server.3=node03:2888:3888
+```
+
+### 3、同步配置文件到其他服务器
+```shell
+rsync -arPv /opt/* node02:/opt/
+rsync -arPv /opt/* node03:/opt/
 
 # node01
 mkdir /data/zookeeper ; echo 1 > /data/zookeeper/myid
@@ -45,12 +68,6 @@ mkdir /data/zookeeper ; echo 1 > /data/zookeeper/myid
 mkdir /data/zookeeper ; echo 2 > /data/zookeeper/myid
 # node03
 mkdir /data/zookeeper ; echo 3 > /data/zookeeper/myid
-```
-
-同步配置文件到其他服务器
-```shell
-rsync -arPv /opt/* node02:/opt/
-rsync -arPv /opt/* node03:/opt/
 ```
 
 ### 4、开启防火墙
@@ -74,7 +91,7 @@ firewall-cmd --reload
 /opt/zookeeper/bin/zkServer.sh status
 ```
 
-#### [systemd]配置管理ZK服务
+#### 5.1、[systemd]配置管理ZK服务
 
 ```shell
 cat << EOF > /usr/lib/systemd/system/zookeeper.service
@@ -110,7 +127,7 @@ EOF
 
 ```
 
-#### [supervison]管理Zookeeper服务
+#### 5.1、[supervison]管理Zookeeper服务
 安装supervisor
 ```shell
 yum -y install epel-release 
@@ -123,20 +140,26 @@ systemctl enable supervisord.service --now
 # cat <<EOF > /etc/supervisord.d/zookeeper.ini 
 [program:zookeeper]
 command=/opt/zookeeper/bin/zkServer.sh start-foreground
-user=root
+process_name=%(program_name)s
+numprocs=1
+buffer_size=10 
+directory=/opt/zookeeper
 autostart=true
 autorestart=true
 startsecs=10
 startretries=999
 stopsignal=KILL
 stopasgroup=true
-log_stdout=true
-log_stderr=true
-logfile_maxbytes=1MB
-logfile_backups=10
+user=root
 redirect_stderr=true
-stdout_logfile=/var/log/supervisor/zookeeper.log
-directory=/opt/zookeeper
+stdout_logfile=/var/log/supervisor/zookeeper.out
+stdout_logfile_maxbytes=1MB 
+stdout_logfile_backups=5
+stdout_events_enabled=false
+stderr_logfile=/var/log/supervisor/zookeeper.err
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=5
+stderr_events_enabled=false
 environment=JAVA_HOME=/opt/jdk
 #startsecs=0
 #exitcodes=0
