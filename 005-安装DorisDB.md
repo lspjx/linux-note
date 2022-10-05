@@ -169,66 +169,63 @@ ln -sv /opt/StarRocks-2.3.2 /opt/starrocks
 
 #### FE 部署
 
-- 拷贝 FE 部署文件到指定节点
+##### 配置 FE
+配置文件 conf/fe.conf：
+```shell
+# 元数据目录
+meta_dir = ${STARROCKS_HOME}/meta
+# JVM配置
+JAVA_OPTS = "-Xmx8192m -XX:+UseMembar -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=7 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled -XX:-CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:SoftRefLRUPolicyMSPerMB=0 -Xloggc:$STARROCKS_HOME/log/fe.gc.log"
+```
 
-  将源码编译生成的 output 下的 fe 文件夹拷贝到 FE 的节点指定部署路径下并进入该目录。
+```shell
+# grep -Ev "^$|^#" /opt/starrocks/fe/conf/fe.conf 
+LOG_DIR = ${STARROCKS_HOME}/log
+DATE = "$(date +%Y%m%d-%H%M%S)"
+JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true -Xmx512m -XX:+UseMembar -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=7 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled -XX:-CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:SoftRefLRUPolicyMSPerMB=0 -Xloggc:$STARROCKS_HOME/log/fe.gc.log.$DATE"
 
-- 配置 FE
+sys_log_level = INFO
+meta_dir = /data/starrocks/fe/meta
+http_port = 8030
+rpc_port = 9020
+query_port = 9030
+edit_log_port = 9010
+mysql_service_nio_enabled = true
+priority_networks = 192.168.2.0/24
 
-  1. 配置文件为 conf/fe.conf。其中注意：`meta_dir`是元数据存放位置。默认值为 `${DORIS_HOME}/doris-meta`。需**手动创建**该目录。
+# mkdir -p /data/starrocks/fe/meta
+```
+1. 配置文件为 conf/fe.conf。其中注意：`meta_dir`是元数据存放位置。默认值为 `${DORIS_HOME}/doris-meta`。需**手动创建**该目录。
 
      **注意：生产环境强烈建议单独指定目录不要放在Doris安装目录下，最好是单独的磁盘（如果有SSD最好），测试开发环境可以使用默认配置**
 
-  2. fe.conf 中 JAVA_OPTS 默认 java 最大堆内存为 4GB，**建议生产环境调整至 8G 以上**。
+2. fe.conf 中 JAVA_OPTS 默认 java 最大堆内存为 4GB，**建议生产环境调整至 8G 以上**。
 
-  ```shell
-  # grep -Ev "^$|^#" /opt/starrocks/fe/conf/fe.conf 
-  LOG_DIR = ${STARROCKS_HOME}/log
-  DATE = "$(date +%Y%m%d-%H%M%S)"
-  JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true -Xmx512m -XX:+UseMembar -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=7 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled -XX:-CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:SoftRefLRUPolicyMSPerMB=0 -Xloggc:$STARROCKS_HOME/log/fe.gc.log.$DATE"
-  
-  sys_log_level = INFO
-  meta_dir = /data/starrocks/fe/meta
-  http_port = 8030
-  rpc_port = 9020
-  query_port = 9030
-  edit_log_port = 9010
-  mysql_service_nio_enabled = true
-  priority_networks = 192.168.2.0/24
-  
-  # mkdir -p /data/starrocks/fe/meta
-  ```
+##### 开启防火墙
+```shell
+firewall-cmd --permanent --add-port=8000-9060/tcp 
+firewall-cmd --reload
+```
+##### 启动 FE 进程
+```shell
+bin/start_fe.sh --daemon
+```
+FE进程启动进入后台执行。日志默认存放在 log/ 目录下。如启动失败，可以通过查看 log/fe.log 或者 log/fe.out 查看错误信息。
 
-- 启动FE
-
-  ```shell
-  bin/start_fe.sh --daemon
-  jps
-  ```
-
-  开启防火墙
-  ```shell
-  firewall-cmd --permanent --add-port=8000-9060/tcp 
-  firewall-cmd --reload
-  ```
-
-
-  FE进程启动进入后台执行。日志默认存放在 log/ 目录下。如启动失败，可以通过查看 log/fe.log 或者 log/fe.out 查看错误信息。
-
-- 如需部署多 FE，请参见 "FE 扩容和缩容" 章节
+##### 通过浏览器访问
+- 使用浏览器访问 `FE ip:http_port`（默认 8030），打开 StarRocks 的 WebUI， 用户名为 root， 密码为空。
 
 #### 使用 MySQL 客户端访问 FE
-
 StarRocks 可通过 Mysql 客户端进行连接，使用 Add/Drop 命令添加/删除 fe/be 节点，实现对集群的 [扩容/缩容](https://docs.starrocks.io/zh-cn/2.2/administration/Scale_up_down) 操作。
 
-第一步: 安装 mysql 客户端，版本建议 5.5+(如果已经安装，可忽略此步)：
+##### 第一步: 安装 mysql 客户端，版本建议 5.5+(如果已经安装，可忽略此步)：
 
 ```shell
 Ubuntu：sudo apt-get install mysql-client
 Centos：sudo yum install mysql-client
 ```
 
-第二步: FE 进程启动后，使用 mysql 客户端连接 FE 实例：
+##### 第二步: FE 进程启动后，使用 mysql 客户端连接 FE 实例：
 
 ```sql
 # mysql -h 127.0.0.1 -P9030 -uroot
@@ -236,137 +233,187 @@ Centos：sudo yum install mysql-client
 
 注意：这里默认 root 用户密码为空，端口为 fe/conf/fe.conf 中的 query_port 配置项，默认为 9030
 
-第三步: 查看 FE 状态：
+#####  第三步: 查看 FE 状态：
 
 ```plaintext
 mysql> SHOW PROC '/frontends'\G
-
-************************* 1. row ************************
-             Name: 172.16.139.11_9010_1594200991015
-               IP: 172.16.139.11
-         HostName: starrocks-sandbox01
+*************************** 1. row ***************************
+             Name: 192.168.2.121_9010_1664874142461
+               IP: 192.168.2.121
       EditLogPort: 9010
          HttpPort: 8030
         QueryPort: 9030
           RpcPort: 9020
              Role: FOLLOWER
-         IsMaster: true
-        ClusterId: 861797858
+         IsMaster: false
+        ClusterId: 100222780
              Join: true
             Alive: true
-ReplayedJournalId: 64
-    LastHeartbeat: 2020-03-23 20:15:07
+ReplayedJournalId: 1641
+    LastHeartbeat: 2022-10-04 17:35:42
          IsHelper: true
-           ErrMsg:
-1 row in set (0.03 sec)
+           ErrMsg: 
+        StartTime: 2022-10-04 17:11:59
+          Version: 2.3.2-dbc89ae
 ```
 
 **Role** 为 **FOLLOWER** 说明这是一个能参与选主的 FE；
-
 **IsMaster** 为 **true**，说明该 FE 当前为主节点。
 
 如果 MySQL 客户端连接不成功，请查看 log/fe.warn.log 日志文件，确认问题。由于是初次启动，如果在操作过程中遇到任何意外问题，都可以删除并重新创建 FE 的元数据目录，再从头开始操作。
 
-
-
-
 #### BE 部署
 
-- 拷贝 BE 部署文件到所有要部署 BE 的节点
+##### 修改 BE 的配置
+```shell
+# mkdir -p /data/starrocks/be/data{1,2,3}
 
-  将源码编译生成的 output 下的 be 文件夹拷贝到 BE 的节点的指定部署路径下。
+# grep -Ev "^$|^#" /opt/starrocks/be/conf/be.conf 
+sys_log_level = INFO
+be_port = 9060
+webserver_port = 8040
+heartbeat_service_port = 9050
+brpc_port = 8060
+storage_root_path = /data/starrocks/be/data1,medium:HDD;/data/starrocks/be/data2,medium:HDD;/data/starrocks/be/data3
+default_rowset_type = beta
+```
 
-  > 注意：`output/be/lib/debug_info/` 目录下为调试信息文件，文件较大，但实际运行不需要这些文件，可以不部署。
+修改 be/conf/be.conf。主要是配置 `storage_root_path`：数据存放目录。默认在be/storage下，需要**手动创建**该目录。多个路径之间使用英文状态的分号 `;` 分隔（**最后一个目录后不要加 `;`**）。可以通过路径区别存储目录的介质，HDD或SSD。可以添加容量限制在每个路径的末尾，通过英文状态逗号`,`隔开。
+如果用户不是SSD和HDD磁盘混合使用的情况，不需要按照如下示例一和示例二的配置方法配置，只需指定存储目录即可；也不需要修改FE的默认存储介质配置。
 
-- 修改所有 BE 的配置
+示例1如下：
+**注意：如果是SSD磁盘要在目录后面加上`.SSD`,HDD磁盘在目录后面加`.HDD`**
+`storage_root_path=/home/disk1/doris.HDD;/home/disk2/doris.SSD;/home/disk2/doris`
 
-  修改 be/conf/be.conf。主要是配置 `storage_root_path`：数据存放目录。默认在be/storage下，需要**手动创建**该目录。多个路径之间使用英文状态的分号 `;` 分隔（**最后一个目录后不要加 `;`**）。可以通过路径区别存储目录的介质，HDD或SSD。可以添加容量限制在每个路径的末尾，通过英文状态逗号`,`隔开。
-  如果用户不是SSD和HDD磁盘混合使用的情况，不需要按照如下示例一和示例二的配置方法配置，只需指定存储目录即可；也不需要修改FE的默认存储介质配置。
+**说明**
+- /home/disk1/doris.HDD，表示存储介质是HDD;
+- /home/disk2/doris.SSD，表示存储介质是SSD；
+- /home/disk2/doris，存储介质默认为HDD
 
-  示例1如下：
+示例2如下：
+**注意：不论HDD磁盘目录还是SSD磁盘目录，都无需添加后缀，storage_root_path参数里指定medium即可**
+`storage_root_path=/home/disk1/doris,medium:hdd;/home/disk2/doris,medium:ssd`
 
-  **注意：如果是SSD磁盘要在目录后面加上`.SSD`,HDD磁盘在目录后面加`.HDD`**
-
-  `storage_root_path=/home/disk1/doris.HDD;/home/disk2/doris.SSD;/home/disk2/doris`
-
-  **说明**
-
-  - /home/disk1/doris.HDD，表示存储介质是HDD;
-  - /home/disk2/doris.SSD，表示存储介质是SSD；
-  - /home/disk2/doris，存储介质默认为HDD
-
-  示例2如下：
-
-  **注意：不论HDD磁盘目录还是SSD磁盘目录，都无需添加后缀，storage_root_path参数里指定medium即可**
-
-  `storage_root_path=/home/disk1/doris,medium:hdd;/home/disk2/doris,medium:ssd`
-
-  **说明**
-
-  - /home/disk1/doris,medium:hdd，表示存储介质是HDD;
-  - /home/disk2/doris,medium:ssd，表示存储介质是SSD;
+**说明**
+- /home/disk1/doris,medium:hdd，表示存储介质是HDD;
+- /home/disk2/doris,medium:ssd，表示存储介质是SSD;
 
 - BE webserver_port端口配置
-
-  如果 be 部署在 hadoop 集群中，注意调整 be.conf 中的 `webserver_port = 8040` ,以免造成端口冲突
+ 如果 be 部署在 hadoop 集群中，注意调整 be.conf 中的 `webserver_port = 8040` ,以免造成端口冲突
 
 - 在 FE 中添加所有 BE 节点
+ BE 节点需要先在 FE 中添加，才可加入集群。可以使用 mysql-client([下载MySQL 5.7](https://dev.mysql.com/downloads/mysql/5.7.html)) 连接到 FE：
+ `./mysql-client -h fe_host -P query_port -uroot`
 
-  BE 节点需要先在 FE 中添加，才可加入集群。可以使用 mysql-client([下载MySQL 5.7](https://dev.mysql.com/downloads/mysql/5.7.html)) 连接到 FE：
+其中 fe_host 为 FE 所在节点 ip；query_port 在 fe/conf/fe.conf 中的；默认使用 root 账户，无密码登录。
+```shell
+# mysql -h 127.0.0.1 -P9030 -uroot
+```
 
-  `./mysql-client -h fe_host -P query_port -uroot`
+##### 添加 BE 节点到集群
+通过MySQL 客户端连接到 FE 之后执行下面的 SQL，将 BE 添加到集群中
+```sql
+ALTER SYSTEM ADD BACKEND "be_host_ip:heartbeat_service_port";
 
-  其中 fe_host 为 FE 所在节点 ip；query_port 在 fe/conf/fe.conf 中的；默认使用 root 账户，无密码登录。
+# mysql -h 127.0.0.1 -P9030 -uroot
+mysql> ALTER SYSTEM ADD BACKEND "node01:9050";
+mysql> show proc '/backends';
+```
+1. be_host_ip：这里是你 BE 的 IP 地址，和你在 `be.conf` 里的 `priority_networks` 匹配
+2. heartbeat_service_port：这里是你 BE 的心跳上报端口，和你在 `be.conf` 里的 `heartbeat_service_port` 匹配，默认是 `9050`
 
-  ```shell
-  # mysql -h 127.0.0.1 -P9030 -uroot
-  ```
+##### 启动 BE
+```shell
+bin/start_be.sh --daemon
+```
+BE 进程将启动并进入后台执行。日志默认存放在 be/log/ 目录下。如启动失败，可以通过查看 be/log/be.log 或者 be/log/be.out 查看错误信息。
 
-  登录后，执行以下命令来添加每一个 BE：
+##### 查看BE状态
+使用 mysql-client 连接到 FE，并执行 `SHOW PROC '/backends';` 查看 BE 运行情况。如一切正常，`isAlive` 列应为 `true`。
+```shell
+mysql> SHOW PROC '/backends'\G
+*************************** 1. row ***************************
+            BackendId: 10028
+              Cluster: default_cluster
+                   IP: 192.168.2.123
+        HeartbeatPort: 9050
+               BePort: 9060
+             HttpPort: 8040
+             BrpcPort: 8060
+        LastStartTime: 2022-10-04 16:57:50
+        LastHeartbeat: 2022-10-04 17:34:52
+                Alive: true
+ SystemDecommissioned: false
+ClusterDecommissioned: false
+            TabletNum: 3
+     DataUsedCapacity: .000 
+        AvailCapacity: 140.152 GB
+        TotalCapacity: 140.908 GB
+              UsedPct: 0.54 %
+       MaxDiskUsedPct: 0.54 %
+               ErrMsg: 
+              Version: 2.3.2-dbc89ae
+               Status: {"lastSuccessReportTabletsTime":"2022-10-04 17:34:51"}
+    DataTotalCapacity: 140.152 GB
+          DataUsedPct: 0.00 %
+             CpuCores: 2
+```
 
-  `ALTER SYSTEM ADD BACKEND "be_host:heartbeat-service_port";`
-
-  其中 be_host 为 BE 所在节点 ip；heartbeat_service_port 在 be/conf/be.conf 中。
-
-- 启动 BE
-
-  `bin/start_be.sh --daemon`
-
-  BE 进程将启动并进入后台执行。日志默认存放在 be/log/ 目录下。如启动失败，可以通过查看 be/log/be.log 或者 be/log/be.out 查看错误信息。
-
-- 查看BE状态
-
-  使用 mysql-client 连接到 FE，并执行 `SHOW PROC '/backends';` 查看 BE 运行情况。如一切正常，`isAlive` 列应为 `true`。
-
-#### （可选）FS_Broker 部署
+#### Broker 部署（可选）
 
 Broker 以插件的形式，独立于 Doris 部署。如果需要从第三方存储系统导入数据，需要部署相应的 Broker，默认提供了读取 HDFS 、对象存储的 fs_broker。fs_broker 是无状态的，建议每一个 FE 和 BE 节点都部署一个 Broker。
 
-- 拷贝源码 fs_broker 的 output 目录下的相应 Broker 目录到需要部署的所有节点上。建议和 BE 或者 FE 目录保持同级。
+配置文件为 apache_hdfs_broker/conf/apache_hdfs_broker.conf
 
-- 修改相应 Broker 配置
+> 注意：Broker 没有也不需要 priority_networks 参数，Broker 的服务默认绑定在 0.0.0.0 上，只需要在 ADD BROKER 时，填写正确可访问的 Broker IP 即可。
 
-  在相应 broker/conf/ 目录下对应的配置文件中，可以修改相应配置。
+如果有特殊的 hdfs 配置，复制线上的 hdfs-site.xml 到 conf 目录下
 
-- 启动 Broker
+启动 broker：
 
-  `bin/start_broker.sh --daemon`
+```shell
+./apache_hdfs_broker/bin/start_broker.sh --daemon
+```
 
-- 添加 Broker
+添加 broker 节点到集群中：
 
-  要让 Doris 的 FE 和 BE 知道 Broker 在哪些节点上，通过 sql 命令添加 Broker 节点列表。
+```sql
+MySQL> ALTER SYSTEM ADD BROKER broker "node01:8000","node02:8000","node03:8000";
+```
 
-  使用 mysql-client 连接启动的 FE，执行以下命令：
+查看 broker 状态：
 
-  `ALTER SYSTEM ADD BROKER broker_name "broker_host1:broker_ipc_port1","broker_host2:broker_ipc_port2",...;`
+```plaintext
+mysql> SHOW PROC "/brokers"\G
+*************************** 1. row ***************************
+          Name: broker
+            IP: 192.168.2.122
+          Port: 8000
+         Alive: true
+ LastStartTime: 2022-10-04 17:25:45
+LastUpdateTime: 2022-10-04 17:26:00
+        ErrMsg: 
+*************************** 2. row ***************************
+          Name: broker
+            IP: 192.168.2.123
+          Port: 8000
+         Alive: true
+ LastStartTime: 2022-10-04 17:25:55
+LastUpdateTime: 2022-10-04 17:26:00
+        ErrMsg: 
+*************************** 3. row ***************************
+          Name: broker
+            IP: 192.168.2.121
+          Port: 8000
+         Alive: true
+ LastStartTime: 2022-10-04 17:25:35
+LastUpdateTime: 2022-10-04 17:26:00
+        ErrMsg: 
+3 rows in set (0.01 sec)
 
-  其中 broker_host 为 Broker 所在节点 ip；broker_ipc_port 在 Broker 配置文件中的conf/apache_hdfs_broker.conf。
+```
 
-- 查看 Broker 状态
-
-  使用 mysql-client 连接任一已启动的 FE，执行以下命令查看 Broker 状态：`SHOW PROC "/brokers";`
-
-**注：在生产环境中，所有实例都应使用守护进程启动，以保证进程退出后，会被自动拉起，如 [Supervisor](http://supervisord.org/)。如需使用守护进程启动，在 0.9.0 及之前版本中，需要修改各个 start_xx.sh 脚本，去掉最后的 & 符号**。从 0.10.0 版本开始，直接调用 `sh start_xx.sh` 启动即可。也可参考 [这里](https://www.cnblogs.com/lenmom/p/9973401.html)
+Alive 为 true 代表状态正常。
 
 
 
@@ -389,6 +436,8 @@ FE扩缩容时要注意：
 ```sql
 bin/start_fe.sh --helper "fe_host:edit_log_port" --daemon ;
 --fe_host为master节点的ip
+
+# bin/start_fe.sh --helper "node01:9010" --daemon
 ```
 
 通过命令扩容FE节点。
@@ -396,6 +445,9 @@ bin/start_fe.sh --helper "fe_host:edit_log_port" --daemon ;
 ```sql
 alter system add follower "fe_host:edit_log_port";
 alter system add observer "fe_host:edit_log_port";
+
+alter system add follower "node02:9010";
+alter system add observer "node03:9010";
 ```
 
 #### FE缩容
@@ -419,6 +471,9 @@ BE 扩缩容后，StarRocks 会自动根据负载情况，进行数据均衡，�
 
 ```sql
 alter system add backend 'be_host:be_heartbeat_service_port';
+
+alter system add backend "node02:9050";
+alter system add backend "node03:9050";
 ```
 
 - 运行命令查看BE状态
@@ -458,4 +513,130 @@ vim /etc/supervisord.conf
 minfds=65535                 ; (min. avail startup file descriptors;default 1024)
 ```
 
+
+
+## 创建数据表
+
+1. 创建一个数据库
+
+```sql
+create database demo;
+```
+
+1. 创建数据表
+
+```sql
+use demo;
+
+CREATE TABLE IF NOT EXISTS demo.expamle_tbl
+(
+    `user_id` LARGEINT NOT NULL COMMENT "用户id",
+    `date` DATE NOT NULL COMMENT "数据灌入日期时间",
+    `city` VARCHAR(20) COMMENT "用户所在城市",
+    `age` SMALLINT COMMENT "用户年龄",
+    `sex` TINYINT COMMENT "用户性别",
+    `last_visit_date` DATETIME REPLACE DEFAULT "1970-01-01 00:00:00" COMMENT "用户最后一次访问时间",
+    `cost` BIGINT SUM DEFAULT "0" COMMENT "用户总消费",
+    `max_dwell_time` INT MAX DEFAULT "0" COMMENT "用户最大停留时间",
+    `min_dwell_time` INT MIN DEFAULT "99999" COMMENT "用户最小停留时间"
+)
+AGGREGATE KEY(`user_id`, `date`, `city`, `age`, `sex`)
+DISTRIBUTED BY HASH(`user_id`) BUCKETS 1
+PROPERTIES (
+    "replication_allocation" = "tag.location.default: 1"
+);
+```
+
+1. 示例数据
+
+```text
+10000,2017-10-01,北京,20,0,2017-10-01 06:00:00,20,10,10
+10000,2017-10-01,北京,20,0,2017-10-01 07:00:00,15,2,2
+10001,2017-10-01,北京,30,1,2017-10-01 17:05:45,2,22,22
+10002,2017-10-02,上海,20,1,2017-10-02 12:59:12,200,5,5
+10003,2017-10-02,广州,32,0,2017-10-02 11:20:00,30,11,11
+10004,2017-10-01,深圳,35,0,2017-10-01 10:00:15,100,3,3
+10004,2017-10-03,深圳,35,0,2017-10-03 10:20:22,11,6,6
+```
+
+将上面的数据保存在一个test.csv文件中。
+
+1. 导入数据
+
+这里我们通过Stream load 方式将上面保存到文件中的数据导入到我们刚才创建的表里。
+
+```text
+curl  --location-trusted -u root: -T test.csv -H "column_separator:," http://127.0.0.1:8030/api/demo/expamle_tbl/_stream_load
+```
+
+- -T test.csv : 这里是我们刚才保存的数据文件，如果路径不一样，请指定完整路径
+- -u root : 这里是用户名密码，我们使用默认用户root，密码是空
+- 127.0.0.1:8030 : 分别是 fe 的 ip 和 http_port
+
+执行成功之后我们可以看到下面的返回信息
+
+```json
+# curl  --location-trusted -u root: -T test.csv -H "column_separator:," http://127.0.0.1:8030/api/demo/expamle_tbl/_stream_load
+{
+    "TxnId": 10,
+    "Label": "073af582-6d2c-4ca0-a9d2-7e8632ceee29",
+    "Status": "Success",
+    "Message": "OK",
+    "NumberTotalRows": 7,
+    "NumberLoadedRows": 7,
+    "NumberFilteredRows": 0,
+    "NumberUnselectedRows": 0,
+    "LoadBytes": 399,
+    "LoadTimeMs": 332,
+    "BeginTxnTimeMs": 13,
+    "StreamLoadPutTimeMs": 73,
+    "ReadDataTimeMs": 0,
+    "WriteDataTimeMs": 167,
+    "CommitAndPublishTimeMs": 77
+}
+```
+
+1. `NumberLoadedRows`: 表示已经导入的数据记录数
+2. `NumberTotalRows`: 表示要导入的总数据量
+3. `Status` :Success 表示导入成功
+
+到这里我们已经完成的数据导入，下面就可以根据我们自己的需求对数据进行查询分析了。
+
+## 查询数据
+
+我们上面完成了建表，输数据导入，下面我们就可以体验 Doris 的数据快速查询分析能力。
+
+```sql
+mysql> select * from expamle_tbl;
++---------+------------+--------+------+------+---------------------+------+----------------+----------------+
+| user_id | date       | city   | age  | sex  | last_visit_date     | cost | max_dwell_time | min_dwell_time |
++---------+------------+--------+------+------+---------------------+------+----------------+----------------+
+| 10000   | 2017-10-01 | 北京   |   20 |    0 | 2017-10-01 07:00:00 |   35 |             10 |              2 |
+| 10001   | 2017-10-01 | 北京   |   30 |    1 | 2017-10-01 17:05:45 |    2 |             22 |             22 |
+| 10002   | 2017-10-02 | 上海   |   20 |    1 | 2017-10-02 12:59:12 |  200 |              5 |              5 |
+| 10003   | 2017-10-02 | 广州   |   32 |    0 | 2017-10-02 11:20:00 |   30 |             11 |             11 |
+| 10004   | 2017-10-01 | 深圳   |   35 |    0 | 2017-10-01 10:00:15 |  100 |              3 |              3 |
+| 10004   | 2017-10-03 | 深圳   |   35 |    0 | 2017-10-03 10:20:22 |   11 |              6 |              6 |
++---------+------------+--------+------+------+---------------------+------+----------------+----------------+
+6 rows in set (0.02 sec)
+
+mysql> select * from expamle_tbl where city='上海';
++---------+------------+--------+------+------+---------------------+------+----------------+----------------+
+| user_id | date       | city   | age  | sex  | last_visit_date     | cost | max_dwell_time | min_dwell_time |
++---------+------------+--------+------+------+---------------------+------+----------------+----------------+
+| 10002   | 2017-10-02 | 上海   |   20 |    1 | 2017-10-02 12:59:12 |  200 |              5 |              5 |
++---------+------------+--------+------+------+---------------------+------+----------------+----------------+
+1 row in set (0.05 sec)
+
+mysql> select city, sum(cost) as total_cost from expamle_tbl group by city;
++--------+------------+
+| city   | total_cost |
++--------+------------+
+| 广州   |         30 |
+| 上海   |        200 |
+| 北京   |         37 |
+| 深圳   |        111 |
++--------+------------+
+4 rows in set (0.05 sec)
+```
 
