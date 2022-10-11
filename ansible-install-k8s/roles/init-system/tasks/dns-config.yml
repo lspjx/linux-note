@@ -1,0 +1,9 @@
+#- name: chattr -i /etc/resolv.conf
+#  shell: chattr -i /etc/resolv.conf
+
+- name: dns configuration
+  template: src=resolv.conf.j2 dest=/etc/resolv.conf
+
+#- name: chattr +i /etc/resolv.conf
+#  shell: chattr +i /etc/resolv.conf
+

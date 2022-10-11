@@ -1,0 +1,6 @@
+---
+- name: restart ntpd service
+  service: name=ntpd state=restarted enabled=yes
+
+- name: yum clean all and yum repolist
+  shell: yum clean all && yum repolist

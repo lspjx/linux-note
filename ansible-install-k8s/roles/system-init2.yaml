@@ -1,0 +1,18 @@
+---
+- hosts: all
+  tasks:
+    - name: config yum
+      import_role:
+        name: yum-config
+    
+    - name: config dns 
+      import_role:
+        name: dns-client
+      vars:
+        dns_server: [100.65.34.36, 100.65.34.228]
+
+    - name: config ntp client 
+      import_role:
+        name: ntp-client
+      vars:
+        ntp_server: [100.65.34.36, 100.65.34.228]

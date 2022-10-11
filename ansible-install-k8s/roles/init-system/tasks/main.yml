@@ -1,0 +1,6 @@
+---
+- name: include dns-config.yml
+  include: dns-config.yml
+---
+- name: include yum-config.yml
+  include: yum-config.yml
