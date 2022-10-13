@@ -1,0 +1,2 @@
+---
+- import_tasks: get-token.yaml

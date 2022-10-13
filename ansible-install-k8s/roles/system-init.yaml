@@ -1,8 +1,0 @@
----
-- hosts: all
-  vars:
-    - dns_server: [100.65.34.36, 100.65.34.228]
-    - ntp_server: [100.65.34.36, 100.65.34.228]
-  roles:
-    - dns-client
-    - ntp-client

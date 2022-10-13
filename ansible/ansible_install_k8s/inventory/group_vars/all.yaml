@@ -1,0 +1,23 @@
+---
+# 设置ntp地址
+ntp_server: [ntp.aliyun.com, ntp1.aliyun.com, ntp2.aliyun.com]
+# 设置DNS地址
+dns_server: [192.168.26.2, 223.5.5.5, 223.6.6.6]
+# 配置阿里云加速器
+registry-mirrors: https://i9utjj72.mirror.aliyuncs.com
+# 配置私有镜像仓库
+insecure-registries: harbor.example.com
+# 设置K8S版本
+kubernetes_version: 1.22.8
+# 第一台Master IP地址
+advertiseAddress: 192.168.26.101
+# 第一台master 主机名
+mastername0: k8s-node101
+# Master APIServer LB地址加端口，地址127.0.0.1不可修改。
+controlPlaneEndpoint: 127.0.0.1:7443
+# 设置k8s组件镜像仓库地址
+imageRepository: registry.aliyuncs.com/google_containers
+# 设置svc网段
+serviceSubnet: 10.223.0.0/16
+# 设置pod网段
+podSubnet: 10.224.0.0/16

@@ -1,0 +1,17 @@
+---
+- name: 拷贝kubeadm-ha.yaml文件到第一台master主机
+  template: src=kubeadm-ha.yaml.j2 dest=/etc/kubernetes/kubeadm-ha.yaml
+  when: inventory_hostname == groups['kube_control_plane'][0]
+
+- name: 安装第一台master
+  shell: kubeadm init --config /etc/kubernetes/kubeadm-ha.yaml --upload-certs | tee /etc/kubernetes/install.log
+  register: init_master_log
+  when: inventory_hostname == groups['kube_control_plane'][0]
+  args:
+    chdir: /etc/kubernetes/
+    creates: admin.conf
+
+- name: get debug info
+  debug: 
+    var: init_master_log.stdout_lines
+    verbosity: 0

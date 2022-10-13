@@ -1,0 +1,7 @@
+---
+- name: 拷贝calico.yml文件到第一台master主机
+  template: src=calico.yaml.j2 dest=/etc/kubernetes/calico.yaml 
+
+- name: 安装calico cni插件
+  shell: kubectl --kubeconfig  /etc/kubernetes/admin.conf apply -f /etc/kubernetes/calico.yaml
+  when: inventory_hostname == groups['kube_control_plane'][0]

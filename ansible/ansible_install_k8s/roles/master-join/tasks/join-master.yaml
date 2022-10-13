@@ -1,0 +1,19 @@
+---
+
+- name: join master nodes | copy token command to master nodes
+  copy:
+    src: "/tmp/master-join-token.sh"
+    dest: "/tmp/master-join-token.sh"
+    owner: root
+    mode: 0755
+
+- name: join master  nodes | Run join master node script only if ca.crt does not exist on the remote node
+  script: /tmp/master-join-token.sh --some-argument 1234
+  args:
+    creates: /etc/kubernetes/pki/ca.crt
+  register: master_join_info
+
+- name: get join info
+  debug: 
+    var: master_join_info.stdout_lines
+    verbosity: 0

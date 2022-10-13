@@ -1,0 +1,3 @@
+---
+- name: kubeadm init k8s cluster
+  include: kubeadm-init.yml

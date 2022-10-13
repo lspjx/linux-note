@@ -1,0 +1,22 @@
+---
+- name: restart ntpd service
+  service: name=ntpd state=restarted enabled=yes
+
+- name: restart sshd service
+  service: name=sshd state=restarted enabled=yes
+
+- name: restart docker service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+    name: docker
+
+- name: yum clean all and yum repolist
+  shell: yum clean all && yum repolist
+
+- name: source ipvs modules
+  shell: source /etc/sysconfig/modules/ipvs.modules
+
+- name: load kernel settings
+  shell: sysctl --system

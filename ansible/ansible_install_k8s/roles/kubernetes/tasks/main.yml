@@ -1,0 +1,3 @@
+---
+
+- import_tasks: install-k8s-package.yml

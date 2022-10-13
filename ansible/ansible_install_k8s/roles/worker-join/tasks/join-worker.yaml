@@ -1,0 +1,19 @@
+---
+
+- name: join worker nodes | copy token command to worker nodes
+  copy:
+    src: "/tmp/worker-join-token.sh"
+    dest: "/tmp/worker-join-token.sh"
+    owner: root
+    mode: 0755
+
+- name: join worker nodes | Run join worker node script only if ca.crt does not exist on the remote node
+  script: /tmp/worker-join-token.sh --some-argument 1234
+  args:
+    creates: /etc/kubernetes/pki/ca.crt
+  register: worker_join_info
+
+- name: get join info
+  debug: 
+    var: worker_join_info.stdout_lines
+    verbosity: 0

@@ -1,5 +1,0 @@
-[docker-ce]
-name=docker-ce
-baseurl=http://100.65.34.22/docker-ce/
-gpgcheck=1
-gpgkey=http://100.65.34.22/docker-ce/gpg
