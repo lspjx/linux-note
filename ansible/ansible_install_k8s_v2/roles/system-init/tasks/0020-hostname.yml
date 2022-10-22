@@ -1,0 +1,4 @@
+---
+# 设置主机名
+- name: Assign inventory name to unconfigured hostnames
+  command: "hostnamectl set-hostname {{ inventory_hostname }}"

@@ -1,0 +1,16 @@
+---
+- name: Install kubeadm kubectl kubelet packages
+  yum: 
+    name:
+    - kubeadm-{{kubernetes_version}}
+    - kubectl-{{kubernetes_version}}
+    - kubelet-{{kubernetes_version}}
+    state: present
+  notify: restart kubelet service
+
+- name: Start kubelet service
+  systemd:
+    state: started
+    daemon_reload: yes
+    enabled: yes
+    name: kubelet

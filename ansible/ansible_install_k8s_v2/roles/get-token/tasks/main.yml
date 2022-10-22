@@ -1,0 +1,45 @@
+---
+- name: Create a directory if it does not exist
+  file:
+    path: /tmp/token
+    state: directory
+    mode: '0755'
+
+- name: Get token 
+  shell: kubeadm --kubeconfig  /etc/kubernetes/admin.conf token create --print-join-command | tee /tmp/token/join-token.sh
+  when: inventory_hostname == groups['kube_control_plane'][0]
+  register: token_info
+- debug: 
+    var: token_info.stdout_lines
+    verbosity: 0
+
+- name: Get key 
+  shell: kubeadm --kubeconfig  /etc/kubernetes/admin.conf init phase upload-certs --upload-certs | tee /tmp/token/certificate-key
+  when: inventory_hostname == groups['kube_control_plane'][0]
+  register: key_info
+- debug: 
+    var: key_info.stdout_lines
+    verbosity: 0
+
+- name: Copy script 
+  copy: 
+    src: get-join-master.sh 
+    dest: /tmp/token/get-join-master.sh 
+    mode: 0755 
+    owner: root
+
+- name: Get token and key command
+  script: "/tmp/token/get-join-master.sh"
+  when: inventory_hostname == groups['kube_control_plane'][0]
+
+- name: fetch worker token info
+  fetch: 
+    src: /tmp/token/join-token.sh 
+    dest: /tmp/worker-join-token.sh 
+    flat: yes
+
+- name: fetch master token info
+  fetch: 
+    src: /tmp/token/master-join-token.sh 
+    dest: /tmp/master-join-token.sh 
+    flat: yes

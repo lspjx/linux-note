@@ -1,0 +1,5 @@
+---
+
+# 添加本地解析
+- name: Add local resolution to /etc/hosts
+  template: src=hosts.conf.j2 dest=/etc/hosts

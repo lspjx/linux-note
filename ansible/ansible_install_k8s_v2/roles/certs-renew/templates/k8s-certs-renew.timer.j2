@@ -1,0 +1,8 @@
+[Unit]
+Description=Timer to renew K8S control plane certificates
+
+[Timer]
+OnCalendar=*-10-15 03:{{ groups['kube_control_plane'].index(inventory_hostname) }}0:00
+
+[Install]
+WantedBy=multi-user.target

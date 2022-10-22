@@ -1,0 +1,26 @@
+---
+- name: Install docker
+  yum: 
+    name:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io 
+    - docker-compose-plugin
+    state: present
+
+- name: Creates directory /etc/docker
+  file: path=/etc/docker state=directory
+
+- name: Copy docker configuration
+  template: 
+    src: docker-daemon.json.j2 
+    dest: /etc/docker/daemon.json
+  notify:
+  - restart_docker_service
+
+- name: Start docker service
+  systemd:
+    state: started
+    daemon_reload: yes
+    enabled: yes
+    name: docker

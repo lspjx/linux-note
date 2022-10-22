@@ -1,0 +1,12 @@
+---
+
+# 配置yum源
+- name: Copy yum files
+  copy: src={{item.src}} dest=/etc/yum.repos.d/{{item.dest}}
+  with_items:
+    - { src: 'CentOS-Base.repo' , dest: 'CentOS-Base.repo' }
+    - { src: 'epel.repo' , dest: 'epel.repo'  }
+    - { src: 'docker-ce.repo' , dest: 'docker-ce.repo'  }
+    - { src: 'kubernetes.repo' , dest: 'kubernetes.repo'  }
+  notify:
+  - yum clean all and yum repolist

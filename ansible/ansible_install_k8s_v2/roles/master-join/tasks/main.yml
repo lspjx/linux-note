@@ -1,0 +1,72 @@
+---
+
+- name: Install nginx packages
+  yum:
+    name:
+      - nginx
+      - nginx-mod-stream
+    state: present
+
+- name: Config nginx-proxy 
+  template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    owner: root
+    mode: 0755
+    backup: yes
+  register: instal_nginx_proxy
+
+- name: Start nginx service
+  systemd:
+    state: started
+    daemon-reload: "{{ instal_nginx_proxy is changed }}"
+    enabled: yes
+    name: nginx
+
+- name: Set iptables port forwarding
+  shell: iptables -t nat -A OUTPUT -p tcp -d 127.0.0.1 --dport {{loadbalancer_apiserver_port}} -j DNAT --to 127.0.0.1:7443
+
+- name: Copy script to master nodes
+  copy:
+    src: "/tmp/master-join-token.sh"
+    dest: "/tmp/master-join-token.sh"
+    owner: root
+    mode: 0755
+
+- name: Run join master node script only if ca.crt does not exist
+  script: /tmp/master-join-token.sh --some-argument 1234
+  args:
+    creates: /etc/kubernetes/pki/ca.crt
+  register: master_join_info
+- debug: 
+    var: master_join_info.stdout_lines
+
+- name: Clear iptables port forwarding
+  shell: iptables -t nat -F
+
+- name: Delete script file
+  file:
+    path: /tmp/master-join-token.sh
+    state: absent
+
+- name: Copy script to master nodes
+  copy:
+    src: "set-kubectl-config.sh"
+    dest: "/tmp/set-kubectl-config.sh"
+    owner: root
+    mode: 0755
+
+- name: Run script on master node
+  script: /tmp/set-kubectl-config.sh
+
+- name: Delete script file
+  file:
+    path: /tmp/set-kubectl-config.sh
+    state: absent
+
+- name: Remove nginx package
+  yum:
+    name:
+      - nginx
+      - nginx-mod-stream
+    state: absent

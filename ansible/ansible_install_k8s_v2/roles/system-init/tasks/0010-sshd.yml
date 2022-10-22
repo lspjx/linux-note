@@ -1,0 +1,6 @@
+---
+# 优化sshd服务
+- name: Set UseDNS no from /etc/ssh/sshd_config
+  shell: grep "^UseDNS no" /etc/ssh/sshd_config || sed -i '/UseDNS/s/.*/UseDNS no/g' /etc/ssh/sshd_config
+  notify:
+  - restart sshd service

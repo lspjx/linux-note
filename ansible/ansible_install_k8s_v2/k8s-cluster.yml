@@ -1,0 +1,49 @@
+---
+# 初始化环境和安装docker\kubeadm\kubectl\kubelet
+- hosts: k8s_cluster
+  roles:
+    - system-init
+    - docker-ce
+    - kubernetes
+  tags: init-system
+
+# 初始化第1台master节点
+- hosts: kube_control_plane[0]
+  roles:
+    - master-init
+    - calico-cni
+  tags: init-master
+
+# 获取进入扩展节点命令
+- hosts: kube_control_plane[0]
+  roles:
+    - get-token
+  tags: get-token
+
+# 添加第2,3台master节点
+- hosts: kube_control_plane[1],kube_control_plane[2]
+  roles:
+    - master-join
+  tags: join-master
+
+# 设置定时更新证书
+- hosts: kube_control_plane
+  roles:
+    - certs-renew
+  tags: certs-renew
+
+# 添加worker节点
+- hosts: kube_node
+  roles:
+    - nginx-proxy
+    - worker-join
+  tags: join-worker
+
+# 查看集群节点信息
+- hosts: kube_control_plane[0]
+  roles:
+   -  check-cluster
+  tags: check-cluster
+
+
+
