@@ -49,20 +49,14 @@
     path: /tmp/master-join-token.sh
     state: absent
 
-- name: Copy script to master nodes
-  copy:
-    src: "set-kubectl-config.sh"
-    dest: "/tmp/set-kubectl-config.sh"
-    owner: root
-    mode: 0755
+- name: Create directories kube
+  file: path=/root/.kube state=directory owner=root group=root
 
-- name: Run script on master node
-  script: /tmp/set-kubectl-config.sh
+- name: Configure kube
+  copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config remote_src=yes owner=root group=root
 
-- name: Delete script file
-  file:
-    path: /tmp/set-kubectl-config.sh
-    state: absent
+- name:  Configure kubectl completion bash
+  shell: echo -e 'source <(kubectl completion bash)\nalias k=kubectl\ncomplete -F __start_kubectl k' > /etc/profile.d/kubectl.sh
 
 - name: Remove nginx package
   yum:

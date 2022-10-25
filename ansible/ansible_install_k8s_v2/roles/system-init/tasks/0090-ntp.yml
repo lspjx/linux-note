@@ -1,8 +1,6 @@
-  ---
-- name: Install ntp
-  apt: name={{item}} state=present
-  with_items:
-  - ntp
+---
+- name: Install NTP
+  yum: name=ntp state=installed
 
 - name: Configure ntp
   template: src=ntp.conf.j2 dest=/etc/ntp.conf backup=yes

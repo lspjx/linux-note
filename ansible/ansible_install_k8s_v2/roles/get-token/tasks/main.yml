@@ -4,7 +4,8 @@
     path: /tmp/token
     state: directory
     mode: '0755'
-
+  when: inventory_hostname == groups['kube_control_plane'][0]
+  
 - name: Get token 
   shell: kubeadm --kubeconfig  /etc/kubernetes/admin.conf token create --print-join-command | tee /tmp/token/join-token.sh
   when: inventory_hostname == groups['kube_control_plane'][0]
@@ -27,6 +28,7 @@
     dest: /tmp/token/get-join-master.sh 
     mode: 0755 
     owner: root
+  when: inventory_hostname == groups['kube_control_plane'][0]
 
 - name: Get token and key command
   script: "/tmp/token/get-join-master.sh"
@@ -37,9 +39,11 @@
     src: /tmp/token/join-token.sh 
     dest: /tmp/worker-join-token.sh 
     flat: yes
+  when: inventory_hostname == groups['kube_control_plane'][0]
 
 - name: fetch master token info
   fetch: 
     src: /tmp/token/master-join-token.sh 
     dest: /tmp/master-join-token.sh 
     flat: yes
+  when: inventory_hostname == groups['kube_control_plane'][0]

@@ -1,6 +1,38 @@
 ---
-# 优化sshd服务
+
 - name: Set UseDNS no from /etc/ssh/sshd_config
   shell: grep "^UseDNS no" /etc/ssh/sshd_config || sed -i '/UseDNS/s/.*/UseDNS no/g' /etc/ssh/sshd_config
   notify:
   - restart sshd service
+
+- name: get ssh key
+  shell: ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+  when: inventory_hostname == groups['kube_control_plane'][0]
+  args:
+    chdir: ~/.ssh/
+    creates: id_rsa
+
+- name: config ssh key
+  shell: cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && chmod 0600 ~/.ssh/authorized_keys
+  when: inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Copy ssh key to master node
+  copy:
+    src: "~/.ssh"
+    dest: "~/"
+    owner: root
+    mode: 0600
+  when:  inventory_hostname in groups['kube_control_plane'] 
+
+- name: Create directories .ssh
+  file: path=~/.ssh state=directory owner=root group=root
+  when: inventory_hostname in groups['kube_node'] 
+
+
+- name: Copy ssh key to worker node
+  copy:
+    src: "~/.ssh/authorized_keys"
+    dest: "~/.ssh/authorized_keys"
+    owner: root
+    mode: 0600
+  when: inventory_hostname in groups['kube_node'] 

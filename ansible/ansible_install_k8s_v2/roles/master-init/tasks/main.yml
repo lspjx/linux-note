@@ -22,7 +22,7 @@
   copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config remote_src=yes owner=root group=root
 
 - name:  Configure kubectl completion bash
-  shell: echo 'source <(kubectl completion bash)' > /etc/profile.d/kubectl.sh
+  shell: echo -e 'source <(kubectl completion bash)\nalias k=kubectl\ncomplete -F __start_kubectl k' > /etc/profile.d/kubectl.sh
 
 # - name: Copy script to master nodes
 #   copy:
