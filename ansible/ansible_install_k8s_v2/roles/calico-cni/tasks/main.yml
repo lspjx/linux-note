@@ -1,4 +1,4 @@
-·---
+---
 - name: Copy calico.yml file to master node
   template: src=calico.yaml.j2 dest=/etc/kubernetes/calico.yaml 
   when: inventory_hostname == groups['kube_control_plane'][0]
