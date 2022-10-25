@@ -50,12 +50,21 @@
     state: absent
 
 - name: Create directories kube
-  file: path=/root/.kube state=directory owner=root group=root
+  file: 
+    path: /root/.kube 
+    state: directory 
+    owner: root 
+    group: root
 
 - name: Configure kube
-  copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config remote_src=yes owner=root group=root
+  copy: 
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config 
+    remote_src: yes 
+    owner: root 
+    group: root
 
-- name:  Configure kubectl completion bash
+- name:  Configure kubectl tools
   shell: echo -e 'source <(kubectl completion bash)\nalias k=kubectl\ncomplete -F __start_kubectl k' > /etc/profile.d/kubectl.sh
 
 - name: Remove nginx package
