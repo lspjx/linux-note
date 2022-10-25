@@ -15,12 +15,21 @@
   debug: 
     var: init_master_log.stdout_lines
 
-- name: Copy script to master nodes
-  copy:
-    src: "set-kubectl-config.sh"
-    dest: "/tmp/set-kubectl-config.sh"
-    owner: root
-    mode: 0755
+- name: Create directories kube
+  file: path=/root/.kube state=directory owner=root group=root
 
-- name: Run set config script on master node
-  script: /tmp/set-kubectl-config.sh
+- name: Configure kube
+  copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config remote_src=yes owner=root group=root
+
+- name:  Configure kubectl completion bash
+  shell: echo 'source <(kubectl completion bash)' > /etc/profile.d/kubectl.sh
+
+# - name: Copy script to master nodes
+#   copy:
+#     src: "set-kubectl-config.sh"
+#     dest: "/tmp/set-kubectl-config.sh"
+#     owner: root
+#     mode: 0755
+
+# - name: Run set config script on master node
+#   script: /tmp/set-kubectl-config.sh

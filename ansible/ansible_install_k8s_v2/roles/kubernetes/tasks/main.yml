@@ -1,5 +1,5 @@
 ---
-- name: Install kubeadm kubectl kubelet packages
+- name: Install Kubernete packages
   yum: 
     name:
     - kubeadm-{{kubernetes_version}}
@@ -14,3 +14,4 @@
     daemon_reload: yes
     enabled: yes
     name: kubelet
+
