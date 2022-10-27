@@ -1,0 +1,43 @@
+---
+
+# 配置yum源
+- name: Copy yum files
+  copy: src={{item.src}} dest=/etc/yum.repos.d/{{item.dest}}
+  with_items:
+    - { src: 'CentOS-Base.repo' , dest: 'CentOS-Base.repo' }
+    - { src: 'epel.repo' , dest: 'epel.repo'  }
+    - { src: 'docker-ce.repo' , dest: 'docker-ce.repo'  }
+    - { src: 'kubernetes.repo' , dest: 'kubernetes.repo'  }
+  notify:
+  - yum clean all and yum repolist
+
+
+
+# - name: Configuring docker Yum Repository
+#   yum_repository:
+#     name: docker-ce
+#     file: docker-ce
+#     description: Docker CE Stable - $basearch
+#     baseurl: https://mirrors.tencent.com/docker-ce/linux/centos/7/$basearch/stable
+#     gpgcheck: no
+#     enabled: 1
+#   register: docker_yum_status
+
+# - name: Docker Yum Cofiguration
+#   debug:
+#    msg: "is the Docker Yum Configured  -> {{  docker_yum_status.failed }}"
+
+
+# - name: Configuring k8s Yum Repository
+#   yum_repository:
+#     name: kubernetes
+#     file: kubernetes
+#     description: kubernetes
+#     baseurl: https://mirrors.tencent.com/kubernetes/yum/repos/kubernetes-el7-$basearch
+#     gpgcheck: no
+#     enabled: 1
+#   register: repo_status
+
+# - name: "k8s repo Status"
+#   debug:
+#     msg: "is k8s repo is configured ? => {{ repo_status.failed }}"

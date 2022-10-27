@@ -1,0 +1,7 @@
+---
+
+- name: check cluster nodes state
+  shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes -o wide
+  register: cluster_node_info
+- debug: 
+    var: cluster_node_info.stdout_lines

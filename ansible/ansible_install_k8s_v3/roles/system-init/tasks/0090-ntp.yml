@@ -1,0 +1,16 @@
+---
+- name: Install NTP
+  yum: name=ntp state=installed
+
+- name: Configure ntp
+  template: src=ntp.conf.j2 dest=/etc/ntp.conf backup=yes
+  notify:
+  - restart ntpd service
+
+- name: Remove default time zone
+  file: path=/etc/localtime state=absent
+  changed_when: False
+
+- name: Set local time
+  file: src=/usr/share/zoneinfo/Asia/Shanghai dest=/etc/localtime state=link
+  changed_when: False
