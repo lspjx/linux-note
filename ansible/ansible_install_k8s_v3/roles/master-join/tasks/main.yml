@@ -34,7 +34,7 @@
 
 - name: Set iptables port forwarding
   shell: iptables -t nat -A OUTPUT -p tcp -d 127.0.0.1 --dport {{loadbalancer_apiserver_port}} -j DNAT --to 127.0.0.1:7443
-  when: config_nginx_proxy is changed
+  when: not ca_file_check.stat.exists or instal_nginx_proxy is changed or config_nginx_proxy is changed
   register: config_iptables
 
 - name: Copy script to master nodes
