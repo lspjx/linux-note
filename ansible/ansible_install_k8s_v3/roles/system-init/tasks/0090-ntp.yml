@@ -11,6 +11,6 @@
   file: path=/etc/localtime state=absent
   changed_when: False
 
-- name: Set local time
+- name: Set localtime Asia/Shanghai
   file: src=/usr/share/zoneinfo/Asia/Shanghai dest=/etc/localtime state=link
   changed_when: False
