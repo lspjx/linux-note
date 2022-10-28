@@ -26,5 +26,10 @@
     dest: "{{ helm_bin_path }}"
     mode: 0755
     remote_src: true
+  register: helm_install
   become: true
   when: helm_download is changed
+
+- name: Config helm completion bash 
+  shell: echo "source  <(helm completion bash)" > /etc/profile.d/helm.sh
+  when: helm_install is changed

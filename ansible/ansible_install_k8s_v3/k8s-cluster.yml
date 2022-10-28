@@ -45,6 +45,12 @@
     - nodelocaldns
   tags: install-localdns
 
+# 安装 metrics-server
+- hosts: kube_control_plane[0]
+  roles:
+    - metrics-server
+  tags: metrics-server
+
 # 安装 helm
 - hosts: kube_control_plane
   roles:
