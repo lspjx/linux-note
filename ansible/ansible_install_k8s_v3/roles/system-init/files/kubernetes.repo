@@ -1,7 +1,7 @@
 [kubernetes]
-name=Kubernetes
+name=kubernetes
 baseurl=https://mirrors.tencent.com/kubernetes/yum/repos/kubernetes-el7-x86_64
         https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
 failovermethod=roundrobin
-enabled=1
+enabled=0
 gpgcheck=0

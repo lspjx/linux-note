@@ -16,8 +16,8 @@ nodeRegistration:
   imagePullPolicy: IfNotPresent
   name: "{{ansible_hostname}}"
   taints:
-  #- effect: NoSchedule
-  #  key: node-role.kubernetes.io/master  
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master  
 ---
 apiServer:
   timeoutForControlPlane: 4m0s

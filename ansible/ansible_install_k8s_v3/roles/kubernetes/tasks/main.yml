@@ -8,6 +8,7 @@
     - kubelet-{{kubernetes_version}}
     state: present
     disable_excludes: kubernetes
+    enablerepo: kubernetes
   notify: restart kubelet service
 
 - name: Start kubelet service
