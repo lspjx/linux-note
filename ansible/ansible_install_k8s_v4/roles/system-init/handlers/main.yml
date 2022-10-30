@@ -1,0 +1,13 @@
+---
+- name: restart ntpd service
+  service: name=ntpd state=restarted enabled=yes
+
+- name: restart sshd service
+  service: name=sshd state=restarted enabled=yes
+
+- name: yum clean all and yum repolist
+  shell: yum clean all && yum repolist
+
+- name: load ipvs modules
+  shell: source /etc/sysconfig/modules/ipvs.modules
+

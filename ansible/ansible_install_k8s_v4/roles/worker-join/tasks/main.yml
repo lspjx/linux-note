@@ -1,0 +1,21 @@
+---
+
+- name: Copy script to worker nodes
+  copy:
+    src: "/tmp/worker-join-token.sh"
+    dest: "/tmp/worker-join-token.sh"
+    owner: root
+    mode: 0755
+
+- name: Run join worker node script only if ca.crt does not exist
+  script: /tmp/worker-join-token.sh --some-argument 1234
+  args:
+    creates: /etc/kubernetes/pki/ca.crt
+  register: worker_join_info
+- debug: 
+    var: worker_join_info.stdout_lines
+
+- name: Delete script file
+  file:
+    path: /tmp/worker-join-token.sh
+    state: absent

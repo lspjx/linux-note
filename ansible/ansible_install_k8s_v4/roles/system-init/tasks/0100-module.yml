@@ -1,0 +1,18 @@
+# 安装ipvs
+- name: Install ipvsadm
+  yum: name=ipvsadm state=present
+
+- name: Config ipvs module
+  copy: src={{item.src}} dest={{item.dest}} owner=root group=root mode=755
+  with_items:
+    - { src: 'ipvs.modules' , dest: '/etc/sysconfig/modules/ipvs.modules' }
+  notify:
+  - load ipvs modules
+
+- name: Config br_netfilter and overlay module
+  copy: src={{item.src}} dest={{item.dest}} owner=root group=root mode=755
+  with_items:
+    - { src: 'modules-k8s.conf' , dest: '/etc/modules-load.d/k8s.conf' }
+
+- name: Load br_netfilter and overlay module
+  shell: modprobe overlay && modprobe br_netfilter

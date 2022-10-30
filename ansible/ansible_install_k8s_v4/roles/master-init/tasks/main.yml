@@ -1,0 +1,30 @@
+---
+- name: Check if ca.crt exists.
+  stat:
+    path: "/etc/kubernetes/pki/ca.crt"
+  register: ca_file_check
+
+- name: Copy kubeadm-ha.yaml file to the first master node
+  template: src=kubeadm-ha.yaml.j2 dest=/etc/kubernetes/kubeadm-ha.yaml
+  when: inventory_hostname == groups['kube_control_plane'][0] and not ca_file_check.stat.exists
+
+- name: Initialize first master node
+  shell: kubeadm init --config /etc/kubernetes/kubeadm-ha.yaml --upload-certs | tee /etc/kubernetes/install.log
+  register: init_master_log
+  when: inventory_hostname == groups['kube_control_plane'][0] and not ca_file_check.stat.exists
+  args:
+    chdir: /etc/kubernetes/
+    creates: admin.conf
+
+- name: Get debug info
+  debug: 
+    var: init_master_log.stdout_lines
+
+- name: Create directories kube
+  file: path=/root/.kube state=directory owner=root group=root
+
+- name: Configure kube
+  copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config remote_src=yes owner=root group=root
+
+- name:  Configure kubectl tools
+  shell: echo -e 'source <(kubectl completion bash)\nalias k=kubectl\ncomplete -F __start_kubectl k' > /etc/profile.d/kubectl.sh

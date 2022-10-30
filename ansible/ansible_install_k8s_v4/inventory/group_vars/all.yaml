@@ -3,6 +3,10 @@
 ntp_server: [ntp.aliyun.com, ntp1.aliyun.com, ntp2.aliyun.com]
 # 设置DNS地址
 dns_server: [192.168.26.2, 223.5.5.5, 223.6.6.6]
+# 配置阿里云加速器
+#registry-mirrors: https://i9utjj72.mirror.aliyuncs.com
+# 配置私有镜像仓库
+#insecure-registries: harbor.example.com
 # 设置K8S版本
 kubernetes_version: 1.22.8
 # APIServer LB，地址127.0.0.1不可修改。

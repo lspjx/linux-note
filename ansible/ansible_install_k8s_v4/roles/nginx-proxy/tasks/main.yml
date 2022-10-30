@@ -1,0 +1,24 @@
+---
+- name: Install nginx packages
+  yum:
+    name:
+      - nginx
+      - nginx-mod-stream
+    state: present
+
+- name: Config nginx-proxy 
+  template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    owner: root
+    mode: 0755
+    backup: yes
+  notify:
+    - restart nginx service
+
+- name: Start nginx service
+  systemd:
+    state: started
+    daemon_reload: yes
+    enabled: yes
+    name: nginx

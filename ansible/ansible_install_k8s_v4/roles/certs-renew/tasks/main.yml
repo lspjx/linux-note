@@ -1,0 +1,32 @@
+---
+- name: Install script to renew K8S master certificates
+  template:
+    src: k8s-certs-renew.sh.j2
+    dest: "/etc/kubernetes/k8s-certs-renew.sh"
+    mode: 0755
+  when: auto_renew_certificates
+  
+- name: Renew K8S master certificates monthly 1/2
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: 0644
+  with_items:
+    - k8s-certs-renew.service
+    - k8s-certs-renew.timer
+  register: k8s_certs_units
+  when: auto_renew_certificates
+
+- name: Renew K8S master certificates monthly 2/2
+  systemd:
+    name: k8s-certs-renew.timer
+    enabled: yes
+    state: started
+    daemon-reload: "{{ k8s_certs_units is changed }}"
+  when: auto_renew_certificates
+
+- name: Renew K8S master certificates check
+  shell: systemctl list-timers k8s-certs-renew.timer
+  register: renew_k8s_master_certificates
+- debug: 
+    var: renew_k8s_master_certificates.stdout_lines

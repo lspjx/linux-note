@@ -1,0 +1,10 @@
+[docker-ce-stable]
+name = Docker CE Stable - $basearch
+baseurl = https://mirrors.tencent.com/docker-ce/linux/centos/7/$basearch/stable
+          https://mirrors.aliyun.com/docker-ce/linux/centos/$releasever/$basearch/stable
+failovermethod=roundrobin
+enabled = 1
+gpgcheck = 1
+gpgkey = https://mirrors.tencent.com/docker-ce/linux/centos/gpg
+         https://mirrors.aliyun.com/docker-ce/linux/centos/gpg
+

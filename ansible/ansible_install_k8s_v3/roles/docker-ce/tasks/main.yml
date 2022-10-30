@@ -10,10 +10,6 @@
     state: present
   register: installation_status     
 
-- name: "Installation Status"
-  debug:
-    msg: "Docker Installation Code  -> {{ installation_status.rc }}"
-
 - name: Start docker service
   systemd:
     state: started
@@ -22,39 +18,16 @@
     name: docker
   register: service_status
 
-- name: "Service Status"
-  debug:
-    msg: "Docker Service Code -> {{ service_status.state }}"
-
-- name: Creates directory /etc/docker
-  file: path=/etc/docker state=directory
-
-- name: "Changing the driver in the docker"
-  copy:
-   content: |
-         {
-           "exec-opts": ["native.cgroupdriver=systemd"],
-             "log-driver": "json-file",
-             "log-opts": {
-               "max-size": "100m"
-             },
-             "storage-driver": "overlay2",
-             "storage-opts": [
-               "overlay2.override_kernel_check=true"
-             ]
-         }
-   dest: /etc/docker/daemon.json
+- name: Copy docker configuration
+  template: 
+    src: docker-daemon.json.j2 
+    dest: /etc/docker/daemon.json
   register: driver_change
 
-- name: "Driver Change Info"
-  debug:
-    msg: "is Docker Driver Changed ? -> {{ driver_change.failed }}"
-
-- name: "Restarting Docker"
-  service:
-    name: docker
+- name: Restart Docker
+  systemd:
     state: restarted
+    daemon_reload: yes
+    enabled: yes
+    name: docker
   when: driver_change.changed == true
-
-
-

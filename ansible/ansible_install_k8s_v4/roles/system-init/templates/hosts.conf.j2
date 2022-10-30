@@ -1,0 +1,6 @@
+127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1 localhost6 localhost6.localdomain6 localhost6.localdomain
+
+{% for host in groups['k8s_cluster'] -%}
+{{ hostvars[host]['access_ip'] | default(hostvars[host]['ip'] | default(fallback_ips[host])) }} {{host}}
+{% endfor -%}

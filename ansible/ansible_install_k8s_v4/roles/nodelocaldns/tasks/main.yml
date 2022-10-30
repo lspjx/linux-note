@@ -1,0 +1,19 @@
+---
+- name: Copy nodelocaldns.yaml file to master node
+  template: src=nodelocaldns.yaml.j2 dest=/etc/kubernetes/nodelocaldns.yaml
+  when: inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Install LocalDns
+  shell: kubectl --kubeconfig  /etc/kubernetes/admin.conf apply -f /etc/kubernetes/nodelocaldns.yaml
+  when: inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Modify cluster dns
+  shell: sed -i "s/{{kubedns}}/169.254.20.10/g" /var/lib/kubelet/config.yaml
+
+- name: Restart kubelet service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+    name: kubelet
+
