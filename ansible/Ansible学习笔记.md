@@ -4,7 +4,7 @@
 
 https://docs.ansible.com/ansible/latest/index.html
 
-![image-20221030122457794](C:\Users\li.siping\AppData\Roaming\Typora\typora-user-images\image-20221030122457794.png)
+![image-20221030122457794](./images/image-20221030122457794.png)
 
 
 
